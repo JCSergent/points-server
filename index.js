@@ -22,12 +22,14 @@ io.on("connection", (socket) => {
         const roomCode = generateCode();
         socket.join(roomCode);
         rooms[roomCode] = {
+            state: 'hidden',
             id: roomCode,
             players: {},
         };
         rooms[roomCode].players[request.playerId] = {
-            name: '???',
-            state: 'active'
+            name: request.playerName,
+            state: 'active',
+            card: ''
         };
         callback(rooms[roomCode]);
     });
@@ -39,10 +41,13 @@ io.on("connection", (socket) => {
 
         socket.join(request.roomCode);
 
-        rooms[request.roomCode].players[request.playerId] = {
-            name: '???',
-            state: 'active'
-        };
+        if (!rooms[request.roomCode].players[request.playerId]) {
+            rooms[request.roomCode].players[request.playerId] = {
+                name: request.playerName,
+                state: 'active',
+                card: ''
+            };
+        }
 
         socket.to(request.roomCode).emit("ROOM_UPDATE", rooms[request.roomCode]);
         callback(rooms[request.roomCode]);
@@ -50,10 +55,34 @@ io.on("connection", (socket) => {
 
 
     socket.on("PLAYER_UPDATE_REQUEST", (roomId, playerId, request, callback) => {
+        if(!io.sockets.adapter.rooms.get(roomId)) {
+            return callback(null);
+        }
+
         rooms[roomId].players[playerId] = {
             ...rooms[roomId].players[playerId],
             ...request
         };
+
+        socket.to(roomId).emit("ROOM_UPDATE", rooms[roomId]);
+        callback(rooms[roomId]);
+    });
+
+    socket.on("ROOM_UPDATE_REQUEST", (roomId, state, callback) => {
+        if(!io.sockets.adapter.rooms.get(roomId)) {
+            return callback(null);
+        }
+        if (state != 'hidden' && state != 'reveal') {
+            return;
+        }
+
+        rooms[roomId].state = state;
+
+        if (state == 'hidden') {
+            for (const player of Object.keys(rooms[roomId].players)) {
+                rooms[roomId].players[player].card = '';
+            }
+        }
 
         socket.to(roomId).emit("ROOM_UPDATE", rooms[roomId]);
         callback(rooms[roomId]);
