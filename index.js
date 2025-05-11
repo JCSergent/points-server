@@ -1,7 +1,6 @@
 const { createServer } = require("http");
 const { Server } = require("socket.io");
 const { generateCode, releaseCode } = require("./roomCodeManager");
-const { request } = require("https");
 
 const port = process.env.PORT || 8524;
 
@@ -106,6 +105,5 @@ io.sockets.adapter.on('delete-room', (room) => {
     delete rooms[room]
 });
 
-// Server listening to port 3000 
 httpServer.listen(port, () => console.log('listening on: ' + port));
 
