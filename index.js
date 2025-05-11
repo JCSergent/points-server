@@ -87,6 +87,18 @@ io.on("connection", (socket) => {
         socket.to(roomId).emit("ROOM_UPDATE", rooms[roomId]);
         callback(rooms[roomId]);
     });
+
+    socket.on("PLAYER_LEAVE_REQUEST", (roomId, playerId, callback) => {
+        if(!io.sockets.adapter.rooms.get(roomId)) {
+            return callback(null);
+        }
+
+        delete rooms[roomId].players[playerId];
+        socket.leave(roomId);
+        
+        socket.to(roomId).emit("ROOM_UPDATE", rooms[roomId]);
+        callback(rooms[roomId]);
+    });
 });
 
 io.sockets.adapter.on('delete-room', (room) => {
