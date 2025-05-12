@@ -2,12 +2,12 @@ const { createServer } = require("http");
 const { Server } = require("socket.io");
 const { generateCode, releaseCode } = require("./roomCodeManager");
 
-const port = process.env.PORT || 8524;
+const port = process.env.PORT || 5000;
 
 const httpServer = createServer() 
 const io = new Server(httpServer, { 
     cors: {
-        origin: process.env.ORIGIN_URL || 'http://localhost:5173',
+        origin: process.env.ORIGIN_URL || 'http://localhost:8080',
         methods: ["GET", "POST"]
     }
 });
@@ -105,5 +105,5 @@ io.sockets.adapter.on('delete-room', (room) => {
     delete rooms[room]
 });
 
-httpServer.listen(port, () => console.log('listening on: ' + port));
+httpServer.listen(port, '0.0.0.0',() => console.log('listening on: ' + port));
 
