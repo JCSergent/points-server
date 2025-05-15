@@ -23,6 +23,7 @@ io.on("connection", (socket) => {
         rooms[roomCode] = {
             state: 'hidden',
             id: roomCode,
+            timer: 0,
             players: {},
         };
         rooms[roomCode].players[request.playerId] = {
@@ -67,17 +68,20 @@ io.on("connection", (socket) => {
         callback(rooms[roomId]);
     });
 
-    socket.on("ROOM_UPDATE_REQUEST", (roomId, state, callback) => {
+    socket.on("ROOM_UPDATE_REQUEST", (roomId, request, callback) => {
         if(!io.sockets.adapter.rooms.get(roomId)) {
             return callback(null);
         }
-        if (state != 'hidden' && state != 'reveal') {
-            return;
+        if (request.state && (request.state != 'hidden' && request.state != 'reveal')) {
+            return callback(null);
         }
 
-        rooms[roomId].state = state;
+        rooms[roomId] = {
+            ...rooms[roomId],
+            ...request
+        };
 
-        if (state == 'hidden') {
+        if (request.state && request.state == 'hidden') {
             for (const player of Object.keys(rooms[roomId].players)) {
                 rooms[roomId].players[player].card = '';
             }
