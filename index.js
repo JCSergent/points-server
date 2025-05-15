@@ -27,7 +27,7 @@ io.on("connection", (socket) => {
         };
         rooms[roomCode].players[request.playerId] = {
             name: request.playerName,
-            state: 'active',
+            spectating: false,
             card: ''
         };
         callback(rooms[roomCode]);
